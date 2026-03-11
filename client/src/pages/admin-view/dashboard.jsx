@@ -1,5 +1,6 @@
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { addFeatureImage, getFeatureImages } from "@/store/common-slice";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,10 +11,28 @@ function AdminDashboard() {
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
+  const { toast } = useToast();
 
   console.log(uploadedImageUrl, "uploadedImageUrl");
 
   function handleUploadFeatureImage() {
+    if (imageLoadingState) {
+      toast({
+        title: "Image upload in progress",
+        description: "Please wait until the upload finishes.",
+      });
+      return;
+    }
+
+    if (!uploadedImageUrl) {
+      toast({
+        title: "No image to save",
+        description: "Upload an image first before saving it.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
       if (data?.payload?.success) {
         dispatch(getFeatureImages());
@@ -41,7 +60,11 @@ function AdminDashboard() {
         isCustomStyling={true}
         // isEditMode={currentEditedId !== null}
       />
-      <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
+      <Button
+        onClick={handleUploadFeatureImage}
+        className="mt-5 w-full"
+        disabled={imageLoadingState || !uploadedImageUrl}
+      >
         Upload
       </Button>
       <div className="flex flex-col gap-4 mt-5">

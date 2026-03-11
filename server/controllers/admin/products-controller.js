@@ -12,10 +12,10 @@ const handleImageUpload = async (req, res) => {
       result,
     });
   } catch (error) {
-    console.log(error);
-    res.json({
+    console.error("Cloudinary upload failed", error);
+    res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: error?.message || "Error occured",
     });
   }
 };

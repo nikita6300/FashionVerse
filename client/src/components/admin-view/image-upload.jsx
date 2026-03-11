@@ -46,17 +46,34 @@ function ProductImageUpload({
   }
 
   async function uploadImageToCloudinary() {
+    if (!imageFile) return;
     setImageLoadingState(true);
+
     const data = new FormData();
     data.append("my_file", imageFile);
-    const response = await axios.post(
-      "http://localhost:5000/api/admin/products/upload-image",
-      data
-    );
-    console.log(response, "response");
 
-    if (response?.data?.success) {
-      setUploadedImageUrl(response.data.result.url);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/products/upload-image",
+        data
+      );
+
+      if (response?.data?.success) {
+        const uploadedUrl =
+          response?.data?.result?.secure_url || response?.data?.result?.url;
+
+        if (!uploadedUrl) {
+          throw new Error("Upload response is missing an image URL");
+        }
+
+        setUploadedImageUrl(uploadedUrl);
+      } else {
+        throw new Error(response?.data?.message || "Image upload failed");
+      }
+    } catch (error) {
+      console.error("Image upload failed", error);
+      setUploadedImageUrl("");
+    } finally {
       setImageLoadingState(false);
     }
   }
